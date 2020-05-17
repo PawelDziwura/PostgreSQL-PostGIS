@@ -33,7 +33,7 @@ namespace Postgres
 
             List<Point> points = multipoint.Replace("MULTIPOINT", "").Replace("(", "").Replace(")", "").Split(',')
                 .Select(p => p.Split(' '))
-                .Select(p => new Point { X = p[0], Y = p[1], Z = (random.NextDouble()*100).ToString().Replace(",", ".") }).ToList();
+                .Select(p => new Point { X = p[0], Y = p[1], Z = (random.NextDouble()*300).ToString().Replace(",", ".") }).ToList();
 
             cmd = string.Empty;
             foreach(Point point in points )
@@ -53,7 +53,7 @@ namespace Postgres
                 "SELECT wojewodztwa.jpt_nazwa_, count(points.point) " +
                 "FROM wojewodztwa " +
                 "JOIN " +
-                    "(SELECT ST_SetSRID(ST_Point(x, y), 2180) point " +
+                    "(SELECT ST_SetSRID(ST_Point(x, y, z), 2180) point " +
                     "FROM points) points " +
                 "ON (ST_Contains(ST_SetSRID(wojewodztwa.geom, 2180), points.point)) " +
                 "GROUP BY wojewodztwa.jpt_nazwa_;";
@@ -70,8 +70,8 @@ namespace Postgres
         {
             connection.Open();
             string cmd = "SELECT id1, min(d.distance/1000) " +
-                "FROM (select ST_Distance(" +
-                    "ST_SetSRID(ST_Point(p1.y, p1.x),4326)::geography, ST_SetSRID(ST_Point(p2.y, p2.x),4326)::geography) " +
+                "FROM (select ST_3DDistance(" +
+                    "ST_SetSRID(ST_Point(p1.z, p1.y, p1.x),4326)::geography, ST_SetSRID(ST_Point(p2.z, p2.y, p2.x),4326)::geography) " +
                 "distance, p1.id id1, p2.id id2 " +
                 "FROM points p1 join points p2 on (p1.id != p2.id)) d " +
                 "GROUP BY id1 " +
